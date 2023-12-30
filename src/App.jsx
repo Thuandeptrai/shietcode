@@ -15,6 +15,7 @@ import { UserContext } from "./context/ContextProvider";
 import RegisterPage from "./components/RegisterPage";
 import Faceregconite from "./components/loginPage/Faceregconite";
 import CatchImages from "./components/loginPage/CatchImages";
+import FaceIdPage from "./components/FaceId";
 // import Register from "./components/Register";
 const ProtectedRoute = () => {
   const userContext = useContext(UserContext);
@@ -34,6 +35,8 @@ function App() {
         <Route path="/auth" element={<UnprotectedRoute />}>
           <Route path="" element={<Loginpage />} />
           <Route path="register" element={<RegisterPage />} />
+          <Route path="faceid" element={<FaceIdPage />} />
+
         </Route>
         <Route path="/dashboard" element={<ProtectedRoute />}>
           <Route path="">

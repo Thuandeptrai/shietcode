@@ -1,10 +1,17 @@
-import React from 'react';
+import React,{useContext} from 'react';
 import Navbar from 'react-bootstrap/Navbar';
 import Container from 'react-bootstrap/Container';
 import Tooltip from '@mui/material/Tooltip';
 import { Link } from 'react-router-dom';
 import './Bar.scss'
+import { UserContext } from '../../context/ContextProvider';
 function Bar({ activeState }) {
+    const userContext = useContext(UserContext);
+    const handleSignOut = () => {
+        userContext.setUser(null);
+        localStorage.removeItem('user');
+
+    }
     return (
         <div className="bg-body-tertiary col-lg-auto col-sm-1 d-flex flex-column justify-content-between  min-vh-100 border border-right p-0">
             <Container className=''>
@@ -56,7 +63,7 @@ function Bar({ activeState }) {
                     <a className="dropdown-item" href="#">New project...</a>
                     <a className="dropdown-item " href="#">Settings</a>
                     <a className="dropdown-item" href="#">Profile</a>
-                    <a className="dropdown-item border-top text-warning" href="#">Sign out</a>
+                    <a className="dropdown-item border-top text-warning" href="#" onClick={handleSignOut}>Sign out</a>
                 </div>
             </div>
         </div>

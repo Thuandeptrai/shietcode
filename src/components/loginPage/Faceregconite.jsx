@@ -67,14 +67,7 @@ function Faceregconite({ catchImages }) {
                 <video ref={video} autoPlay muted height={videoHeight} width={videoWidth} onPlay={handleVideoOnPlaying} />
                 <canvas ref={canvas} height={videoHeight} width={videoWidth} className='position-absolute' />
             </div>
-            <Button type="primary" onClick={handleTakePhoto}>
-                Take photo
-            </Button>
-            <Button type="primary" onClick={
-                handleReset
-            } >
-                Reset
-            </Button>
+         
 
         </div>
     );

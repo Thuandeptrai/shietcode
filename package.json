@@ -14,7 +14,7 @@
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.12.2",
     "antd-img-crop": "^4.18.0",
-    "axios": "^1.6.2",
+    "axios": "^1.6.3",
     "bootstrap": "^5.3.2",
     "bootstrap-icons": "^1.11.1",
     "face-api.js": "^0.22.2",
