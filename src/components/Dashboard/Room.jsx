@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./Room.scss";
-import { Card, CardContent, TextField, Modal, Button as Button1, Checkbox, Form, Input } from "antd";
+import { Card, CardContent, TextField, Modal, Button as Button1, Checkbox, Form, Input,Space, Table, Tag } from "antd";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ButtonGroup from "@mui/material/ButtonGroup";
@@ -13,30 +13,24 @@ import Stack from "@mui/material/Stack";
 import { Divider } from 'antd';
 import { PoweroffOutlined } from '@ant-design/icons';
 import { Button as button1, Flex } from 'antd';
+import instance from "../services/axios";
 const onFinish = (values) => {
   console.log("Success:", values);
 };
 const onFinishFailed = (errorInfo) => {
   console.log("Failed:", errorInfo);
 };
+
 function Room({ showToast }) {
   const [dataroom, dataroomchange] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [from] = Form.useForm();
   useEffect(() => {
-    fetch("http://localhost:8000/dataroom")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((resp) => {
-        dataroomchange(resp);
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-      });
+    const getAllKey = async () => {
+       const res = await instance.get("/key");
+      dataroomchange(res.data);
+    }
+    getAllKey();
   }, []);
 
   const showModal = () => {
@@ -74,8 +68,8 @@ function Room({ showToast }) {
               <tr className="table-warning">
                 <th>TT</th>
                 <th>Vị trí</th>
-                <th>Mô tả</th>
-                <th>Thời gian khởi tạo</th>
+                <th>Key</th>
+
                 <th>Hoạt động</th>
               </tr>
             </thead>
@@ -83,17 +77,21 @@ function Room({ showToast }) {
               {dataroom && dataroom.length > 0 ? (
                 // Dataroom && Dataroom.length > 0 ?
                 dataroom &&
-                dataroom.map((item) => {
+                dataroom.map((item, idx) => {
                   return (
-                    <tr key={item.id}>
-                      <td>{item.id}</td>
+                    <tr key={idx}>
+                      <td>{idx}</td>
 
                       <td role="button" className="text-warning">
                         {item.name}
                       </td>
-                      <td>{item.description}</td>
-                      <td>{item.timeCreated}</td>
+                      <td role="button" className="text-warning">
+                        {item.key}
+                      </td>
                       <td>
+                        {item.isActive ? (<Tag color="success">Hoạt động</Tag>) : (<Tag color="error">Không hoạt động</Tag>)}
+                      </td>
+                      {/* <td>
                         <ButtonGroup variant="text" aria-label="outlined button group">
                           <Button size="small" onClick={() => alert(item.id)}>
                             <i class="bi bi-pencil"></i>
@@ -102,7 +100,7 @@ function Room({ showToast }) {
                             <i class="bi  bi-trash" onClick={() => alert(item.id)}></i>
                           </Button>
                         </ButtonGroup>
-                      </td>
+                      </td> */}
                     </tr>
                   );
                 })

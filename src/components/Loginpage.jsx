@@ -25,7 +25,7 @@ function Loginpage() {
         success: "Login success",
         error: "Login fail"
       });
-      if (res.status === 200) {
+    if (res.status === 200) {
         setTimeout(() => {
           userContext.setUser(res.data.message);
           localStorage.setItem("user", JSON.stringify(res.data.message));

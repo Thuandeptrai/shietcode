@@ -29,6 +29,7 @@ function dataURLtoFile(dataurl, filename) {
 function FaceIdPage() {
   // use context set value for context
   const userContext = useContext(UserContext);
+  const toastId = useRef(null);
   const Navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [successData, setSuccessData] = useState(null);
@@ -61,36 +62,45 @@ function FaceIdPage() {
     const formData = new FormData();
     // convert base64 to file
     const file = dataURLtoFile(image.src, "image.jpg");
+    // gen new toast and update
+    const toastId = toast("Loading", {
+      type: "info",
+      isLoading: true,
+      autoClose: false,
+      toastId: "1234"
+    });
+    formData.append("images", file);
     try {
-      formData.append("images", file);
       // react toastify chain
       setLoading(true);
-      const response = await toast.promise(
-        instance.post("/loginWithImage", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data"
-          }
-        }),
-        {
-          pending: "logging ...",
-          success: "Login Success!",
-          error: "Login Error!"
-        }
-      );
-
+      const response = await instance.post("/loginWithImage", formData);
+      // show toast
+      toast.update("1234", {
+        render: "Login success",
+        type: "success",
+        isLoading: false,
+        autoClose: 5000
+      });
       setTimeout(() => {
         if (response.status === 200) {
-       
           localStorage.setItem("user", JSON.stringify(response.data.message));
           userContext.setUser(response.data.message);
+          setLoading(false);
+          handleReset();
         } else {
           handleReset();
         }
       }, 5000);
     } catch (error) {
+      console.log(error.response);
+      toast.update("1234", {
+        render: "Login fail",
+        type: "error",
+        isLoading: false,
+        autoClose: 5000
+      });
       setTimeout(() => {
         setLoading(false);
-
         handleReset();
       }, 5000);
     }
