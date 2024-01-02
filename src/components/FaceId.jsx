@@ -63,23 +63,18 @@ function FaceIdPage() {
     // convert base64 to file
     const file = dataURLtoFile(image.src, "image.jpg");
     // gen new toast and update
-    const toastId = toast("Loading", {
-      type: "info",
-      isLoading: true,
-      autoClose: false,
-      toastId: "1234"
-    });
+
     formData.append("images", file);
     try {
       // react toastify chain
       setLoading(true);
       const response = await instance.post("/loginWithImage", formData);
       // show toast
-      toast.update("1234", {
-        render: "Login success",
-        type: "success",
-        isLoading: false,
-        autoClose: 5000
+      toast.success("Login success", {
+        autoClose: 5000,
+        position: "top-center",
+        hideProgressBar: false,
+        closeOnClick: true
       });
       setTimeout(() => {
         if (response.status === 200) {
@@ -93,11 +88,11 @@ function FaceIdPage() {
       }, 5000);
     } catch (error) {
       console.log(error.response);
-      toast.update("1234", {
-        render: "Login fail",
-        type: "error",
-        isLoading: false,
-        autoClose: 5000
+      toast.error("Login fail", {
+        autoClose: 5000,
+        position: "top-center",
+        hideProgressBar: false,
+        closeOnClick: true
       });
       setTimeout(() => {
         setLoading(false);
@@ -139,7 +134,13 @@ function FaceIdPage() {
                     <video ref={videoRef} autoPlay style={{ width: 300, height: 300 }} />
 
                     <Button type="primary" onClick={handleSubmit} disabled={loading === true ? true : false}>
-                      Login
+                      {
+                        loading === true ? (
+                          <LoadingOutlined />
+                        ) : (
+               "Login"
+                        )
+                      }
                     </Button>
                   </div>
                 </div>

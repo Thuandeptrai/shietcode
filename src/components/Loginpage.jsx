@@ -20,12 +20,14 @@ function Loginpage() {
     setLoading(true);
     try {
       const { username, password } = form.getFieldsValue();
-      const res = await toast.promise(instance.post("/loginWithPassword", { username, password }), {
-        pending: "Loading",
-        success: "Login success",
-        error: "Login fail"
-      });
+      const res = await instance.post("/login", { username, password });
     if (res.status === 200) {
+        toast.success("Login success",{
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+        });
         setTimeout(() => {
           userContext.setUser(res.data.message);
           localStorage.setItem("user", JSON.stringify(res.data.message));
@@ -34,6 +36,12 @@ function Loginpage() {
       }
       setLoading(false);
     } catch (error) {
+      toast.error("Login fail",{
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+      });
       setLoading(false);
       console.log(error);
     }

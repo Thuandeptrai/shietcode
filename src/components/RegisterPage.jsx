@@ -89,17 +89,17 @@ function RegisterPage() {
   };
   const handleSubmit = async () => {
     // create form data
-    if(!image){
-        message.error("Please take photo");
-        return;
+    if (!image) {
+      message.error("Please take photo");
+      return;
     }
-    if(!form.getFieldValue("username")){
-        message.error("Please input username");
-        return;
+    if (!form.getFieldValue("username")) {
+      message.error("Please input username");
+      return;
     }
-    if(!form.getFieldValue("password")){
-        message.error("Please input password");
-        return;
+    if (!form.getFieldValue("password")) {
+      message.error("Please input password");
+      return;
     }
 
     const formData = new FormData();
@@ -113,19 +113,28 @@ function RegisterPage() {
       formData.append("images", file);
       // react toastify chain
       setLoading(true);
-      const response = await toast.promise(
-        instance.post("/signUpWithImage", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data"
-          }
-        }),
-        {
-          pending: "signing up ...",
-          success: "SignUp Success!",
-          error: "SignUp Error!"
-        }
-      );
-    } catch (error) {}
+      const response = await instance.post("/signUpWithImage", formData);
+      // show toast
+      toast.success("Register success", {
+        autoClose: 5000,
+        position: "top-center",
+        hideProgressBar: false,
+        closeOnClick: true
+      });
+    } catch (error) {
+      setLoading(false);
+      console.log(error.response);
+      toast.error("Register fail", {
+        autoClose: 5000,
+        position: "top-center",
+        hideProgressBar: false,
+        closeOnClick: true
+      });
+      // reset all state
+      setImage(null);
+      form.resetFields();
+      navigator.mediaDevices.getUserMedia(mediaStreamConstraints).then(onMediaSuccess).catch(onMediaError);
+    }
   };
   return (
     <div className="app vh-100  d-flex align-items-center">
@@ -227,7 +236,7 @@ function RegisterPage() {
                       </Form.Item>
                       <Form.Item>
                         <Button type="primary" onClick={handleSubmit} disabled={loading === true ? true : false}>
-                          Sign Up
+                          {loading === true ? <LoadingOutlined /> : "Register"}
                         </Button>
                       </Form.Item>
                     </Form>
