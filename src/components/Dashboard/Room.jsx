@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Container } from "react-bootstrap";
 import Button from "@mui/material/Button";
 import { useEffect } from "react";
@@ -34,10 +34,11 @@ import { useNavigate } from "react-router-dom";
 function Room({ showToast }) {
   const [dataroom, dataroomchange] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [getAgain, setGetAgian] = useState(false);
   const [form] = Form.useForm();
   const [type, setType] = useState(0);
-  const navigate = useNavigate();
   const ws = new WebSocket("ws://159.223.71.166:8120");
+  const navigate = useNavigate();
   useEffect(() => {
     const getAllKey = async () => {
       const res = await instance.get("/key");
@@ -68,7 +69,8 @@ function Room({ showToast }) {
       };
     };
     getAllKey();
-  }, []);
+  }, [isModalOpen]);
+  // socket onMessage
 
   const onFinish = async (values) => {
     console.log("Success:", values);
