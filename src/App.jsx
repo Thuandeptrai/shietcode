@@ -16,10 +16,19 @@ import RegisterPage from "./components/RegisterPage";
 import Faceregconite from "./components/loginPage/Faceregconite";
 import CatchImages from "./components/loginPage/CatchImages";
 import FaceIdPage from "./components/FaceId";
+import DetailsPage from "./components/DetailsPage";
+import DetailsPage2 from "./components/DetailsPage2";
+
 // import Register from "./components/Register";
 const ProtectedRoute = () => {
   const userContext = useContext(UserContext);
-  return userContext?.user !== null ? <Outlet /> : <Navigate to="/auth" />;
+  return userContext?.user !== null ? (
+    <>
+      <Outlet />
+    </>
+  ) : (
+    <Navigate to="/auth" /> 
+  );
 };
 const UnprotectedRoute = () => {
   const userContext = useContext(UserContext);
@@ -36,16 +45,17 @@ function App() {
           <Route path="" element={<Loginpage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="faceid" element={<FaceIdPage />} />
-
         </Route>
         <Route path="/dashboard" element={<ProtectedRoute />}>
           <Route path="">
             <Route path="" element={<Dashboard activeState={1} children={<Room />} />} />
+
             <Route
               path="createroom"
               activeState={0}
               element={<Dashboard activeState={1} children={<Createroom />} />}
             />
+            <Route path=":id" activeState={0} element={<Dashboard activeState={1} children={<DetailsPage2 />} />} />
           </Route>
           <Route
             path="devices"

@@ -4,34 +4,97 @@ import Button from "@mui/material/Button";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./Room.scss";
-import { Card, CardContent, TextField, Modal, Button as Button1, Checkbox, Form, Input,Space, Table, Tag } from "antd";
+import {
+  Card,
+  CardContent,
+  TextField,
+  Modal,
+  Button as Button1,
+  Checkbox,
+  Row,
+  Form,
+  Input,
+  Space,
+  Table,
+  Tag,
+  Col,
+  Select
+} from "antd";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
-import { Divider } from 'antd';
-import { PoweroffOutlined } from '@ant-design/icons';
-import { Button as button1, Flex } from 'antd';
+import { Divider } from "antd";
+import { PoweroffOutlined } from "@ant-design/icons";
+import { Button as button1, Flex } from "antd";
 import instance from "../services/axios";
-const onFinish = (values) => {
-  console.log("Success:", values);
-};
-const onFinishFailed = (errorInfo) => {
-  console.log("Failed:", errorInfo);
-};
+import { useNavigate } from "react-router-dom";
 
 function Room({ showToast }) {
   const [dataroom, dataroomchange] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [from] = Form.useForm();
+  const [form] = Form.useForm();
+  const [type, setType] = useState(0);
+  const navigate = useNavigate();
+  const ws = new WebSocket("ws://159.223.71.166:8120");
   useEffect(() => {
     const getAllKey = async () => {
-       const res = await instance.get("/key");
+      const res = await instance.get("/key");
+      // establish websocket
       dataroomchange(res.data);
-    }
+      ws.onopen = () => {
+        console.log("connected");
+      };
+      ws.onmessage = (event) => {
+        console.log("message", event.data);
+        const data = JSON.parse(event.data);
+        if(data.length === 0){
+          res.data.forEach((item) => {
+            item.isActive = false;
+          }
+          )
+          dataroomchange([...res.data]);
+        };
+        
+        for (let i = 0; i < res.data.length; i++) {
+          for (let j = 0; j < data.length; j++) {
+            if (data[j].id === res.data[i].key) {
+              res.data[i].isActive = true;
+              dataroomchange([...res.data]);
+            }
+          }
+        }
+      };
+    };
     getAllKey();
   }, []);
+
+  const onFinish = async (values) => {
+    console.log("Success:", values);
+    console.log("Type", type);
+    try {
+      const res = await instance.post("/key/create", {
+        name: values.roomname,
+        device1: values.device1,
+        device2: values.device2,
+        device3: values.device3,
+        device4: {
+          label: values.device4,
+          Chart: type
+        },
+        device5: values.device5,
+        device6: values.device6
+      });
+      setIsModalOpen(false);
+      // push new data to dataroom
+      console.log("res", res.data);
+      dataroomchange([...dataroom, res.data]);
+    } catch (error) {}
+  };
+  const onFinishFailed = (errorInfo) => {
+    console.log("Failed:", errorInfo);
+  };
 
   const showModal = () => {
     setIsModalOpen(true);
@@ -48,7 +111,9 @@ function Room({ showToast }) {
     <>
       <Container className="col bg-body-tertiary">
         <div className="head-bar pt-5 d-flex justify-content-between">
-          <Divider orientation="left" orientationMargin="0"><span className="text-uppercase fw-bold fs-4">Vị trí</span></Divider>
+          <Divider orientation="left" orientationMargin="0">
+            <span className="text-uppercase fw-bold fs-4">Vị trí</span>
+          </Divider>
         </div>
         <ToastContainer limit={2} />
         <div className="badge-button mt-3 d-flex ">
@@ -83,13 +148,41 @@ function Room({ showToast }) {
                       <td>{idx}</td>
 
                       <td role="button" className="text-warning">
-                        {item.name}
+                        {item.isActive ? (
+                          <Link
+                            to={`/dashboard/${item._id}`}
+                            style={{
+                              textDecoration: "none",
+                              color: "inherit"
+                            }}
+                          >
+                            {item.name}
+                          </Link>
+                        ) : (
+                          <>{item.name}</>
+                        )}
                       </td>
                       <td role="button" className="text-warning">
-                        {item.key}
+                        {item.isActive ? (
+                          <Link
+                            to={`/dashboard/${item._id}`}
+                            style={{
+                              textDecoration: "none",
+                              color: "inherit"
+                            }}
+                          >
+                            {item.key}
+                          </Link>
+                        ) : (
+                          <>{item.key}</>
+                        )}
                       </td>
                       <td>
-                        {item.isActive ? (<Tag color="success">Hoạt động</Tag>) : (<Tag color="error">Không hoạt động</Tag>)}
+                        {item.isActive ? (
+                          <Tag color="success">Hoạt động</Tag>
+                        ) : (
+                          <Tag color="error">Không hoạt động</Tag>
+                        )}
                       </td>
                       {/* <td>
                         <ButtonGroup variant="text" aria-label="outlined button group">
@@ -119,10 +212,10 @@ function Room({ showToast }) {
           </table>
         </div>
       </Container>
-      <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-        <Card sx={{ minWidth: 275 }}>
+      <Modal title="Basic Modal" open={isModalOpen} onOk={form.submit} onCancel={handleCancel} width={800}>
+        <Card sx={{ minWidth: 400 }}>
           <Form
-            from={from}
+            form={form}
             name="basic"
             labelCol={{
               span: 8
@@ -131,7 +224,7 @@ function Room({ showToast }) {
               span: 16
             }}
             style={{
-              maxWidth: 600
+              maxWidth: 700
             }}
             initialValues={{
               remember: true
@@ -154,8 +247,8 @@ function Room({ showToast }) {
             </Form.Item>
 
             <Form.Item
-              label="Mô tả"
-              name="description"
+              label="Thiet Bi 1"
+              name="device1"
               rules={[
                 {
                   required: true,
@@ -165,10 +258,89 @@ function Room({ showToast }) {
             >
               <Input />
             </Form.Item>
-
-
-
-
+            <Form.Item
+              label="Thiet Bi 2"
+              name="device2"
+              rules={[
+                {
+                  required: true,
+                  message: "Mo ta khong duoc de trong"
+                }
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label="Thiet Bi 3"
+              name="device3"
+              rules={[
+                {
+                  required: true,
+                  message: "Mo ta khong duoc de trong"
+                }
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            {/* // Col */}
+            <Row>
+              <Col span={12}>
+                <Form.Item label="Thiet Bi 4" name="device4">
+                  <Input
+                    style={{
+                      width: 100
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="Loai bieu do" name="device4Type">
+                  <Select
+                    style={{
+                      width: 150
+                    }}
+                    defaultValue={type}
+                    onChange={(value) => {
+                      setType(value);
+                    }}
+                    options={[
+                      {
+                        label: "Biểu đò nhiệt độ",
+                        value: 0
+                      },
+                      {
+                        label: "Biểu đồ gas",
+                        value: 1
+                      }
+                    ]}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Form.Item
+              label="Thiet Bi 5"
+              name="device5"
+              rules={[
+                {
+                  required: true,
+                  message: "Mo ta khong duoc de trong"
+                }
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label="Thiet Bi 6"
+              name="device6"
+              rules={[
+                {
+                  required: true,
+                  message: "Mo ta khong duoc de trong"
+                }
+              ]}
+            >
+              <Input />
+            </Form.Item>
           </Form>
         </Card>
       </Modal>
