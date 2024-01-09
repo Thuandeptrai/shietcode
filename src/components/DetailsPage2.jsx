@@ -13,60 +13,69 @@ export default function DetailsPage2() {
   const [data, setData] = useState(null);
   const [currentData, setCurrentData] = useState(null);
   const [stateDevice, setStateDevice] = useState(false);
-  const socket = new WebSocket("ws://159.223.71.166:8120");
+  const [enable, setEnable] = useState(false);
+  const [enable2, setEnable2] = useState(false);
+  const websocket = React.useRef(null);
 
   useEffect(() => {
+    websocket.current = new WebSocket("ws://159.223.71.166:8120");
+
     const getDetailKey = async () => {
       const res = await instance.get(`/key/${id}`);
       console.log(res.data);
       setData(res.data);
-      socket.onopen = () => {
+      websocket.current.onopen = () => {
         console.log("connected");
       };
-      socket.onmessage = (event) => {
+      websocket.current.onmessage = (event) => {
         console.log("message", event.data);
-        const data = JSON.parse(event.data);
-        if (data.length === 0) {
-          setCurrentData([]);
-          setStateDevice(false);
-          return;
-        }
-        for (let i = 0; i < data.length; i++) {
-          if (data[i].id === res.data.key) {
-            setStateDevice(true);
-            setCurrentData(data[i]);
+        // check if is valid JSON type
+        try {
+          const data = JSON.parse(event.data);
+          if (data.length === 0) {
+            setCurrentData([]);
+            setStateDevice(false);
+            return;
           }
+          for (let i = 0; i < data.length; i++) {
+            if (data[i].id === res.data.key) {
+              setStateDevice(true);
+              setCurrentData(data[i]);
+            }
+          }
+          console.log("data", data);
+        } catch (err) {
+          console.log(err);
         }
-        console.log("data", data);
       };
     };
     getDetailKey();
   }, []);
   const onChangeDevice1 = (checked) => {
-    console.log(`switch to ${checked}`);
-    socket.send(JSON.stringify({ type: "message", id: data.key, device1: checked ? 1 : 0 }));
+    // wait 1 second
+    websocket.current.send(JSON.stringify({ type: "message", id: data.key, device1: checked ? 1 : 0 }));
+
+    // set Disable Switch for 1 second
   };
   const onChangeDevice2 = (checked) => {
     console.log(`switch to ${checked}`);
-    socket.send(JSON.stringify({ type: "message", id: data.key, device2: checked ? 1 : 0 }));
+    websocket.current.send(JSON.stringify({ type: "message", id: data.key, device2: checked ? 1 : 0 }));
   };
   console.log("currentData", currentData);
   return (
     <>
       {/* need divine matrix 3x3 */}
       <div className="col ">
-        <div style={
-          {
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'space-between',
-            height: '100px',
-          }
-        }>
-
-        <h1>State of Device {stateDevice ? "On" : "Off"}</h1>
-        <h1>Device Id: {data?.key}</h1>
-
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "space-between",
+            height: "100px"
+          }}
+        >
+          <h1>State of Device {stateDevice ? "On" : "Off"}</h1>
+          <h1>Device Id: {data?.key}</h1>
         </div>
         <Row
           style={{
@@ -90,6 +99,7 @@ export default function DetailsPage2() {
               value={currentData?.device1 === 1 ? true : false}
               checkedChildren="On"
               unCheckedChildren="Off"
+              disabled={enable || stateDevice ? false : true}
             />
           </Col>
           <Col
@@ -111,6 +121,7 @@ export default function DetailsPage2() {
               value={currentData?.device2 === 1 ? true : false}
               checkedChildren="On"
               unCheckedChildren="Off"
+              disabled={enable2 || stateDevice ? false : true}
             />
           </Col>
           <Col

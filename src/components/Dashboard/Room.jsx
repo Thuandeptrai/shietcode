@@ -35,6 +35,8 @@ function Room({ showToast }) {
   const [dataroom, dataroomchange] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [getAgain, setGetAgian] = useState(false);
+  const [edit, setEdit] = useState(false);
+  const [id, setId] = useState(null);
   const [form] = Form.useForm();
   const [type, setType] = useState(0);
   const ws = new WebSocket("ws://159.223.71.166:8120");
@@ -47,61 +49,116 @@ function Room({ showToast }) {
       ws.onopen = () => {
         console.log("connected");
       };
-      ws.onmessage = (event) => {
-        console.log("message", event.data);
+      ws.onmessage = async (event) => {
+        const getAgain = await instance.get("/key");
         const data = JSON.parse(event.data);
-        if(data.length === 0){
-          res.data.forEach((item) => {
-            item.isActive = false;
-          }
-          )
-          dataroomchange([...res.data]);
-        };
-        
-        for (let i = 0; i < res.data.length; i++) {
+        if (data.length === 0) {
+          dataroomchange([...getAgain.data]);
+        }
+
+        for (let i = 0; i < getAgain.data.length; i++) {
           for (let j = 0; j < data.length; j++) {
-            if (data[j].id === res.data[i].key) {
-              res.data[i].isActive = true;
-              dataroomchange([...res.data]);
+            if (data[j].id === getAgain.data[i].key) {
+              getAgain.data[i].isActive = true;
+              dataroomchange([...getAgain.data]);
             }
           }
         }
       };
+     
     };
     getAllKey();
-  }, [isModalOpen]);
+  }, []);
   // socket onMessage
 
   const onFinish = async (values) => {
-    console.log("Success:", values);
-    console.log("Type", type);
+    let res;
     try {
-      const res = await instance.post("/key/create", {
-        name: values.roomname,
-        device1: values.device1,
-        device2: values.device2,
-        device3: values.device3,
-        device4: {
-          label: values.device4,
-          Chart: type
-        },
-        device5: values.device5,
-        device6: values.device6
-      });
+      if (edit) {
+        res = await instance.put(`/key/${id}`, {
+          name: values.roomname,
+          device1: values.device1,
+          device2: values.device2,
+          device3: values.device3,
+          device4: {
+            label: values.device4,
+            Chart: type
+          },
+          device5: values.device5,
+          device6: values.device6
+        });
+        // update dataroom
+        const newDataroom = dataroom.map((item) => {
+          if (item._id === id) {
+            return res.data;
+          }
+          return item;
+        });
+        dataroomchange(newDataroom);
+      } else {
+        res = await instance.post("/key/create", {
+          name: values.roomname,
+          device1: values.device1,
+          device2: values.device2,
+          device3: values.device3,
+          device4: {
+            label: values.device4,
+            Chart: type
+          },
+          device5: values.device5,
+          device6: values.device6
+        });
+      dataroomchange([...dataroom, res.data]);
+
+      }
       setIsModalOpen(false);
       // push new data to dataroom
-      console.log("res", res.data);
-      dataroomchange([...dataroom, res.data]);
-    } catch (error) {}
+      // reset form
+      form.resetFields();
+      // show toast
+      toast.success(edit ? "Cập nhật phòng thành công" : "Tạo phòng thành công");
+      setId(null);
+      setEdit(false);
+      setGetAgian(!getAgain);
+    } catch (error) {
+      toast.error(edit ? "Cập nhật phòng thất bại" : "Tạo phòng thất bại");
+      setGetAgian(!getAgain);
+    }
   };
   const onFinishFailed = (errorInfo) => {
     console.log("Failed:", errorInfo);
   };
-
+  const handleDelete = async (id) => {
+    try {
+      await instance.delete(`/key/${id}`);
+      const newDataroom = dataroom.filter((item) => item._id !== id);
+      dataroomchange(newDataroom);
+      toast.success("Xóa phòng thành công");
+      setGetAgian(!getAgain);
+    } catch (error) {
+      toast.error("Xóa phòng thất bại");
+      setGetAgian(!getAgain);
+    }
+  };
   const showModal = () => {
     setIsModalOpen(true);
   };
+  const showModalEdit = ({ id, name, device1, device2, device3, device4, device4Type, device5, device6 }) => {
+    form.setFieldsValue({
+      roomname: name,
+      device1: device1,
+      device2: device2,
+      device3: device3,
+      device4: device4,
+      device4Type: device4Type,
+      device5: device5,
+      device6: device6
+    });
+    setId(id);
+    setIsModalOpen(true);
 
+    setEdit(true);
+  };
   const handleOk = () => {
     setIsModalOpen(false);
   };
@@ -109,6 +166,7 @@ function Room({ showToast }) {
   const handleCancel = () => {
     setIsModalOpen(false);
   };
+
   return (
     <>
       <Container className="col bg-body-tertiary">
@@ -117,7 +175,6 @@ function Room({ showToast }) {
             <span className="text-uppercase fw-bold fs-4">Vị trí</span>
           </Divider>
         </div>
-        <ToastContainer limit={2} />
         <div className="badge-button mt-3 d-flex ">
           <button className="btn btn-outline-secondary btn-sm me-3">
             Tổng số thiết bị <span className="badge text-bg-secondary">4</span>
@@ -138,6 +195,7 @@ function Room({ showToast }) {
                 <th>Key</th>
 
                 <th>Hoạt động</th>
+                <th>Hành động</th>
               </tr>
             </thead>
             <tbody>
@@ -186,16 +244,40 @@ function Room({ showToast }) {
                           <Tag color="error">Không hoạt động</Tag>
                         )}
                       </td>
-                      {/* <td>
+                      <td>
                         <ButtonGroup variant="text" aria-label="outlined button group">
-                          <Button size="small" onClick={() => alert(item.id)}>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              showModalEdit({
+                                id: item._id,
+                                name: item.name,
+                                device1: item.device1,
+                                device2: item.device2,
+                                device3: item.device3,
+                                device4: item.device4?.label,
+                                device4Type: item.device4?.Chart,
+                                device5: item.device5,
+                                device6: item.device6
+                              });
+                            }}
+                          >
                             <i class="bi bi-pencil"></i>
                           </Button>
                           <Button size="small">
-                            <i class="bi  bi-trash" onClick={() => alert(item.id)}></i>
+                            <i
+                              class="bi  bi-trash"
+                              onClick={() => {
+                                if(item.isActive) {
+                                  toast.error("Không thể xóa phòng đang hoạt động");
+                                  return;
+                                }
+                                handleDelete(item._id);
+                              }}
+                            ></i>
                           </Button>
                         </ButtonGroup>
-                      </td> */}
+                      </td>
                     </tr>
                   );
                 })
