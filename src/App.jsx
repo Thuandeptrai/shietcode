@@ -27,7 +27,7 @@ const ProtectedRoute = () => {
       <Outlet />
     </>
   ) : (
-    <Navigate to="/auth" /> 
+    <Navigate to="/auth" />
   );
 };
 const UnprotectedRoute = () => {

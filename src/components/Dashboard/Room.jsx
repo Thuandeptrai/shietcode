@@ -38,37 +38,60 @@ function Room({ showToast }) {
   const [edit, setEdit] = useState(false);
   const [id, setId] = useState(null);
   const [form] = Form.useForm();
+  const [active, setActive] = useState(0);
   const [type, setType] = useState(0);
-  const ws = new WebSocket("ws://159.223.71.166:8120");
-  const navigate = useNavigate();
+  const websocket = React.useRef(null);
   useEffect(() => {
     const getAllKey = async () => {
+      websocket.current = new WebSocket("ws://159.223.71.166:8120");
       const res = await instance.get("/key");
       // establish websocket
       dataroomchange(res.data);
-      ws.onopen = () => {
+      websocket.current.onopen = () => {
         console.log("connected");
       };
-      ws.onmessage = async (event) => {
-        const getAgain = await instance.get("/key");
-        const data = JSON.parse(event.data);
-        if (data.length === 0) {
-          dataroomchange([...getAgain.data]);
-        }
+      websocket.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.length === 0) {
+            setActive(0);
+            // set isActice false in dataRoom
+            
+            dataroomchange(
+              res.data.map((item) => {
+                return {
+                  ...item,
+                  isActive: false
+                };
+              })
+            );
+            return;
+          }else{
 
-        for (let i = 0; i < getAgain.data.length; i++) {
-          for (let j = 0; j < data.length; j++) {
-            if (data[j].id === getAgain.data[i].key) {
-              getAgain.data[i].isActive = true;
-              dataroomchange([...getAgain.data]);
-            }
+          // set isActice true in dataRoom
+          for (let i = 0; i < data.length; i++) {
+            dataroomchange(
+              res.data.map((item) => {
+                if (item.key === data[i].id) {
+                  return {
+                    ...item,
+                    isActive: true
+                  };
+                }
+                return item;
+              })
+            );
           }
         }
+        } catch (err) {
+          console.log(err);
+        }
       };
-     
+      
     };
     getAllKey();
   }, []);
+
   // socket onMessage
 
   const onFinish = async (values) => {
@@ -108,8 +131,7 @@ function Room({ showToast }) {
           device5: values.device5,
           device6: values.device6
         });
-      dataroomchange([...dataroom, res.data]);
-
+        dataroomchange([...dataroom, res.data]);
       }
       setIsModalOpen(false);
       // push new data to dataroom
@@ -177,10 +199,10 @@ function Room({ showToast }) {
         </div>
         <div className="badge-button mt-3 d-flex ">
           <button className="btn btn-outline-secondary btn-sm me-3">
-            Tổng số thiết bị <span className="badge text-bg-secondary">4</span>
+            Tổng số thiết bị <span className="badge text-bg-secondary">{dataroom && dataroom.length}</span>
           </button>
           <button className="btn btn-outline-secondary  btn-sm">
-            Thiết bị đang hoạt động <span className="badge text-bg-secondary">4</span>
+            Thiết bị đang hoạt động <span className="badge text-bg-secondary">{active}</span>
           </button>
           <button type="button" className="btn btn-success ms-auto" size="small" onClick={showModal}>
             <i class="bi  bi-plus"></i>Thêm phòng
@@ -268,7 +290,7 @@ function Room({ showToast }) {
                             <i
                               class="bi  bi-trash"
                               onClick={() => {
-                                if(item.isActive) {
+                                if (item.isActive) {
                                   toast.error("Không thể xóa phòng đang hoạt động");
                                   return;
                                 }
@@ -369,7 +391,7 @@ function Room({ showToast }) {
             {/* // Col */}
             <Row>
               <Col span={12}>
-                <Form.Item label="Thiet Bi 4" name="device4">
+                <Form.Item label="Cảm biến 4" name="device4">
                   <Input
                     style={{
                       width: 100
@@ -402,7 +424,7 @@ function Room({ showToast }) {
               </Col>
             </Row>
             <Form.Item
-              label="Thiet Bi 5"
+              label="Cảm Biến 5"
               name="device5"
               rules={[
                 {
@@ -414,7 +436,7 @@ function Room({ showToast }) {
               <Input />
             </Form.Item>
             <Form.Item
-              label="Thiet Bi 6"
+              label="Cảm biến 6"
               name="device6"
               rules={[
                 {

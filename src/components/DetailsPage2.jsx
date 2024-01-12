@@ -18,9 +18,10 @@ export default function DetailsPage2() {
   const websocket = React.useRef(null);
 
   useEffect(() => {
-    websocket.current = new WebSocket("ws://159.223.71.166:8120");
 
     const getDetailKey = async () => {
+    websocket.current = new WebSocket("ws://159.223.71.166:8120");
+      
       const res = await instance.get(`/key/${id}`);
       console.log(res.data);
       setData(res.data);
@@ -28,7 +29,6 @@ export default function DetailsPage2() {
         console.log("connected");
       };
       websocket.current.onmessage = (event) => {
-        console.log("message", event.data);
         // check if is valid JSON type
         try {
           const data = JSON.parse(event.data);
@@ -43,7 +43,6 @@ export default function DetailsPage2() {
               setCurrentData(data[i]);
             }
           }
-          console.log("data", data);
         } catch (err) {
           console.log(err);
         }
@@ -158,7 +157,7 @@ export default function DetailsPage2() {
             {data?.device4?.Chart === 0 ? (
               <Temperature value={currentData?.device4 ? currentData?.device4 : 0} height={350} />
             ) : (
-              <PM value={20} />
+              <PM value={currentData?.device4 ? currentData?.device4 : 0} />
             )}
           </Col>
           <Col
