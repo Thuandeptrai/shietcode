@@ -8,6 +8,7 @@ import { Upload, Form, Input, Image, message } from "antd";
 import ImgCrop from "antd-img-crop";
 import { Divider } from 'antd';
 import instance from '../services/axios';
+import { ToastContainer, toast } from "react-toastify";
 
 
 const getBase64 = (img, callback) => {
@@ -53,6 +54,8 @@ function Credential() {
         return isJpgOrPng && isLt2M;
     };
     const [form] = Form.useForm();
+    const [form1] = Form.useForm();
+
     const [fileList, setFileList] = useState([{}]);
     const [imageUrl, setImageUrl] = useState();
     const onChange = ({ fileList: newFileList }) => {
@@ -101,9 +104,13 @@ function Credential() {
         }
     };
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen1, setIsModalOpen1] = useState(false);
 
     const showModal = () => {
         setIsModalOpen(true);
+    };
+    const showModal1 = () => {
+        setIsModalOpen1(true);
     };
 
     const handleOk = () => {
@@ -112,6 +119,9 @@ function Credential() {
 
     const handleCancel = () => {
         setIsModalOpen(false);
+    };
+    const handleCancel1 = () => {
+        setIsModalOpen1(false);
     };
     const handleOnEdit = async (values) => {
         const user = await instance.put(`/editUser`, {
@@ -127,6 +137,31 @@ function Credential() {
 
         setIsModalOpen(false);
     };
+    const handleEditPassword = async (values) => {
+        try{
+
+        const user = await instance.post(`/editPassword`, {
+            prevPassword: values.prevPassword,
+            newPassword: values.newPassword,
+        });
+        toast.success("Change password success", {
+            autoClose: 5000,
+            position: "top-center",
+            hideProgressBar: false,
+            closeOnClick: true
+        });
+        setIsModalOpen1(false);
+    }catch(error){
+        toast.error(
+            error.response?.data?.message || "Change password fail"
+            , {
+            autoClose: 5000,
+            position: "top-center",
+            hideProgressBar: false,
+            closeOnClick: true
+        });
+    }
+    };
     return (
         <>
             <Container className="col">
@@ -136,9 +171,10 @@ function Credential() {
 
                 }}>
                 <div className='pt-5'><Divider orientation="left" orientationMargin="0"><span className="text-uppercase fw-bold fs-4">Thông tin người dùng</span></Divider></div>
-                <div className='pt-5'><Button type="primary" onClick={showModal}>Edit</Button></div>
-                </div>
+                <div className='pt-5'><Button type="primary" onClick={showModal}>Edit</Button></div>          
+                <div className='pt-5'><Button type="primary" onClick={showModal1}>Password</Button></div>          
 
+                </div>
                 <Descriptions               >
                     <Descriptions.Item label="username">{JSON.parse(localStorage.getItem("user")).username}</Descriptions.Item>
                     <Descriptions.Item label="Email">{JSON.parse(localStorage.getItem("user")).email}</Descriptions.Item>
@@ -202,6 +238,47 @@ function Credential() {
                     </Form.Item>
                 </Form>
             </Modal>
+            {/* edit password modal */}
+            <Modal title="Change Password" open={isModalOpen1} onOk={form1.submit} onCancel={handleCancel1}>
+                <Form form={form1} name="basic" labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} style={{ maxWidth: 600 }} onFinish={handleEditPassword} autoComplete="off">
+                    <Form.Item
+                        label="Old Password"
+                        name="oldPassword"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please Input your old password!"
+                            }
+                        ]}
+                    >
+                        <Input.Password />
+                    </Form.Item>
+                    <Form.Item
+                        label="prevPassword"
+                        name="prevPassword"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please Input your new password!"
+                            }
+                        ]}
+                    >
+                        <Input.Password />
+                    </Form.Item>
+                    <Form.Item
+                        label="newPassword"
+                        name="password"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please Input your confirm password!"
+                            }
+                        ]}
+                    >
+                        <Input.Password />
+                    </Form.Item>
+                </Form>
+                </Modal>
         </>
     );
 }
