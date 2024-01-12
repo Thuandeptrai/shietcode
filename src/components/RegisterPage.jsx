@@ -124,7 +124,9 @@ function RegisterPage() {
     } catch (error) {
       setLoading(false);
       console.log(error.response);
-      toast.error("Register fail", {
+      toast.error(
+        error.response?.data?.message || "Register fail"
+        , {
         autoClose: 5000,
         position: "top-center",
         hideProgressBar: false,

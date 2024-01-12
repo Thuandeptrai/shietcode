@@ -87,8 +87,9 @@ function FaceIdPage() {
         }
       }, 5000);
     } catch (error) {
-      console.log(error.response);
-      toast.error("Login fail", {
+      toast.error(
+        "User not found" ? "User not found" : "Login fail",
+         {
         autoClose: 5000,
         position: "top-center",
         hideProgressBar: false,

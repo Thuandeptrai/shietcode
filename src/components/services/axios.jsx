@@ -5,7 +5,7 @@ const instance = axios.create({
 });
 instance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = JSON.parse(localStorage.getItem("user"))?.jwt_token;
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
@@ -13,7 +13,7 @@ instance.interceptors.request.use(
   },
   (error) => {
     if(error.response.status === 401){
-      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     }
     return Promise.reject(error);
   }

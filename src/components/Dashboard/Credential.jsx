@@ -7,6 +7,7 @@ import { PlusOutlined, LoadingOutlined } from "@ant-design/icons";
 import { Upload, Form, Input, Image, message } from "antd";
 import ImgCrop from "antd-img-crop";
 import { Divider } from 'antd';
+import instance from '../services/axios';
 
 
 const getBase64 = (img, callback) => {
@@ -112,35 +113,37 @@ function Credential() {
     const handleCancel = () => {
         setIsModalOpen(false);
     };
-    const handleOnEdit = (values) => {
-        const newItems = items.map((item) => {
-            item.children = values[item.key];
-            return item;
+    const handleOnEdit = async (values) => {
+        const user = await instance.put(`/editUser`, {
+            username: values.username,
+            email: values.email,
+            phoneNumber: values.phoneNumber,
         });
-        setItems(newItems);
+        const getUsr = JSON.parse( localStorage.getItem("user"));
+        getUsr.username = user.data.user.username;
+        getUsr.email = user.data.user.email;
+        getUsr.phoneNumber = user.data.user.phoneNumber;
+        localStorage.setItem("user", JSON.stringify(getUsr));
+
         setIsModalOpen(false);
     };
     return (
         <>
             <Container className="col">
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between'
+
+                }}>
                 <div className='pt-5'><Divider orientation="left" orientationMargin="0"><span className="text-uppercase fw-bold fs-4">Thông tin người dùng</span></Divider></div>
+                <div className='pt-5'><Button type="primary" onClick={showModal}>Edit</Button></div>
+                </div>
 
                 <Descriptions               >
-                    <Descriptions.Item label="UserName">{items[0].children}</Descriptions.Item>
-                    <Descriptions.Item label="Email">{items[1].children}</Descriptions.Item>
-                    <Descriptions.Item label="Phone Number">{items[2].children}</Descriptions.Item>
-                    <Descriptions.Item
-                        label="Picture"
-                        labelStyle={{
-                            marginTop: 35
-                        }}
-                    >
-                        {items[3].children === null ? (
-                            <Image width={100} height={100} src="/notfound.jpg" />
-                        ) : (
-                            <Image width={200} src={items[3].children} />
-                        )}
-                    </Descriptions.Item>
+                    <Descriptions.Item label="username">{JSON.parse(localStorage.getItem("user")).username}</Descriptions.Item>
+                    <Descriptions.Item label="Email">{JSON.parse(localStorage.getItem("user")).email}</Descriptions.Item>
+                    <Descriptions.Item label="Phone Number">{JSON.parse(localStorage.getItem("user")).phoneNumber}</Descriptions.Item>
+               
                 </Descriptions>
             </Container>
             <Modal title="User Information" open={isModalOpen} onOk={form.submit} onCancel={handleCancel}>
@@ -150,10 +153,14 @@ function Credential() {
                     labelCol={{ span: 8 }}
                     wrapperCol={{ span: 16 }}
                     style={{ maxWidth: 600 }}
-                    initialValues={items.reduce((acc, item) => {
-                        acc[item.key] = item.children;
-                        return acc;
-                    }, {})}
+                    initialValues={
+                        {
+                            username: JSON.parse(localStorage.getItem("user")).username,
+                            email: JSON.parse(localStorage.getItem("user")).email,
+                            phoneNumber: JSON.parse(localStorage.getItem("user")).phoneNumber,
+
+                        }
+                    }
                     onFinish={handleOnEdit}
                     autoComplete="off"
                 >
@@ -192,42 +199,6 @@ function Credential() {
                         ]}
                     >
                         <Input />
-                    </Form.Item>
-                    <Form.Item
-                        label="Picture"
-                        name="picture"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please Input your Picture!"
-                            }
-                        ]}
-                    >
-                        <Upload
-                            name="avatar"
-                            listType="picture-card"
-                            className="avatar-uploader"
-                            showUploadList={false}
-                            customRequest={({ onSuccess }) => {
-                                setTimeout(() => {
-                                    onSuccess("ok");
-                                }, 0);
-                            }}
-                            beforeUpload={beforeUpload}
-                            onChange={handleChange}
-                        >
-                            {imageUrl ? (
-                                <img
-                                    src={imageUrl}
-                                    alt="avatar"
-                                    style={{
-                                        width: "100%"
-                                    }}
-                                />
-                            ) : (
-                                uploadButton
-                            )}
-                        </Upload>
                     </Form.Item>
                 </Form>
             </Modal>
