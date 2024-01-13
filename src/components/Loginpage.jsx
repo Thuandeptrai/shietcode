@@ -20,7 +20,7 @@ function Loginpage() {
     setLoading(true);
     try {
       const { username, password } = form.getFieldsValue();
-      const res = await instance.post("/login", { username, password });
+      const res = await instance.post("/loginWithPassword", { username, password });
     if (res.status === 200) {
         toast.success("Login success",{
           position: "top-center",

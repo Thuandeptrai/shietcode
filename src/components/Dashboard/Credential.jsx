@@ -142,7 +142,7 @@ function Credential() {
 
         const user = await instance.post(`/editPassword`, {
             prevPassword: values.prevPassword,
-            newPassword: values.newPassword,
+            password : values.password ,
         });
         toast.success("Change password success", {
             autoClose: 5000,

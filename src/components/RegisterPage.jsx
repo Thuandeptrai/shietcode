@@ -61,6 +61,7 @@ function RegisterPage() {
   const [imageUrl, setImageUrl] = useState();
   const [successData, setSuccessData] = useState(null);
   const [image, setImage] = useState(null); // [1]
+  const [avialable, setAvialable] = useState(true); // [1]
   const videoRef = useRef(null);
   const mediaStreamConstraints = {
     video: true
@@ -77,6 +78,7 @@ function RegisterPage() {
 
   const handleTakePhoto = async () => {
     // create form data
+    setAvialable(false);
     const canvas = document.createElement("canvas");
     canvas.width = videoRef.current.videoWidth;
     canvas.height = videoRef.current.videoHeight;
@@ -88,6 +90,11 @@ function RegisterPage() {
     setImage(image);
   };
   const handleSubmit = async () => {
+    if(avialable){
+      message.error("Please take photo");
+      return;
+
+    } 
     // create form data
     if (!image) {
       message.error("Please take photo");
