@@ -56,7 +56,7 @@ function Room({ showToast }) {
           if (data.length === 0) {
             setActive(0);
             // set isActice false in dataRoom
-            
+
             dataroomchange(
               res.data.map((item) => {
                 return {
@@ -66,32 +66,31 @@ function Room({ showToast }) {
               })
             );
             return;
-          }else{
-
-          // set isActice true in dataRoom
-          for (let i = 0; i < data.length; i++) {
-            setActive(data.length);
-            dataroomchange(
-              res.data.map((item) => {
-                if (item.key === data[i].id) {
-                  return {
-                    ...item,
-                    isActive: true
-                  };
-                }
-                return {
-                  ...item,
-                  isActive: false
-                };
-              })
-            );
+          } else {
+            // set isActice true in dataRoom
+            for (let i = 0; i < data.length; i++) {
+              setActive(data.length);
+              dataroomchange(
+                res.data.map((item) => {
+                  if (item.key === data[i].id) {
+                    return {
+                      ...item,
+                      isActive: true
+                    };
+                  } else {
+                    return {
+                      ...item,
+                      isActive: false
+                    };
+                  }
+                })
+              );
+            }
           }
-        }
         } catch (err) {
           console.log(err);
         }
       };
-      
     };
     getAllKey();
   }, []);
