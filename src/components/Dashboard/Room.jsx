@@ -70,6 +70,7 @@ function Room({ showToast }) {
 
           // set isActice true in dataRoom
           for (let i = 0; i < data.length; i++) {
+            setActive(data.length);
             dataroomchange(
               res.data.map((item) => {
                 if (item.key === data[i].id) {
@@ -78,7 +79,10 @@ function Room({ showToast }) {
                     isActive: true
                   };
                 }
-                return item;
+                return {
+                  ...item,
+                  isActive: false
+                };
               })
             );
           }
