@@ -31,7 +31,7 @@ import { Button as button1, Flex } from "antd";
 import instance from "../services/axios";
 import { useNavigate } from "react-router-dom";
 
-function Room({ showToast }) {
+function Room({ data, setData }) {
   const [dataroom, dataroomchange] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [getAgain, setGetAgian] = useState(false);
@@ -41,10 +41,12 @@ function Room({ showToast }) {
   const [active, setActive] = useState(0);
   const [type, setType] = useState(0);
   const websocket = React.useRef(null);
+  // update to parent component
   useEffect(() => {
     const getAllKey = async () => {
       websocket.current = new WebSocket("ws://159.223.71.166:8120");
       const res = await instance.get("/key");
+      // update to parent component
       // establish websocket
       dataroomchange(res.data);
       websocket.current.onopen = () => {
@@ -56,7 +58,7 @@ function Room({ showToast }) {
           if (data.length === 0) {
             setActive(0);
             // set isActice false in dataRoom
-
+            setData([]);
             dataroomchange(
               res.data.map((item) => {
                 return {
@@ -70,6 +72,8 @@ function Room({ showToast }) {
             // set isActice true in dataRoom
             for (let i = 0; i < data.length; i++) {
               setActive(data.length);
+              setData(data);
+
               dataroomchange(
                 res.data.map((item) => {
                   if (item.key === data[i].id) {
@@ -77,12 +81,8 @@ function Room({ showToast }) {
                       ...item,
                       isActive: true
                     };
-                  } else {
-                    return {
-                      ...item,
-                      isActive: false
-                    };
                   }
+                  return item;
                 })
               );
             }

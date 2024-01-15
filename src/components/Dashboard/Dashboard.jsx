@@ -8,12 +8,12 @@ import Credential from './Credential';
 import Createroom from '../Crudtable/Createroom';
 import Updateroom from '../Crudtable/Updateroom';
 import { Routes, Route } from 'react-router-dom'
-function Dashboard({activeState,children}) {
+function Dashboard({activeState,children, data, setData}) {
     return (
         <div className='container-fluid'>
             <div className="row gy-auto">
                 <Bar activeState={activeState}/>
-                <Information />
+                <Information  data={data} setData={setData}  />
                 {children}
                 {/* <Routes>
                 <Route path="/room" element={<Room />} />

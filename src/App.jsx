@@ -34,7 +34,10 @@ const UnprotectedRoute = () => {
   const userContext = useContext(UserContext);
   return userContext?.user === null ? <Outlet /> : <Navigate to="/dashboard" />;
 };
+
 function App() {
+  const [data, setData] = useState([])
+
   return (
     <div className="App">
       {/* <Faceregconite /> */}
@@ -48,7 +51,7 @@ function App() {
         </Route>
         <Route path="/dashboard" element={<ProtectedRoute />}>
           <Route path="">
-            <Route path="" element={<Dashboard activeState={1} children={<Room />} />} />
+            <Route path="" element={<Dashboard  data={data} setData={setData} activeState={1} children={<Room data={data} setData={setData}  />} />} />
 
             <Route
               path="createroom"
